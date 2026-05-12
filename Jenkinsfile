@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Checkout from Git') {
             steps {
-              checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'gitCred', url: 'https://github.com/satyanarayana-24/Book-My-Show.git']])
+            checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'gitcred', url: 'https://github.com/Vijayasaka-112/Book-My-Show.git']])
                 sh 'ls -la'  // Verify files after checkout
             }
         }
@@ -32,8 +32,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 
-'Sonar-token'
+                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
                 }
             }
         }
@@ -43,8 +42,7 @@ pipeline {
                 cd bookmyshow-app
                 ls -la  # Verify package.json exists
                 if [ -f package.json ]; then
-                    rm -rf node_modules package-lock.json  # Remove old 
-dependencies
+                    rm -rf node_modules package-lock.json  # Remove old dependencies
                     npm install  # Install fresh dependencies
                 else
                     echo "Error: package.json not found in bookmyshow-app!"
@@ -55,10 +53,8 @@ dependencies
         }
         stage('OWASP FS Scan') {
             steps {
-                dependencyCheck additionalArguments: '--scan ./ -
-disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
-                dependencyCheckPublisher pattern: '**/dependency-check
-report.xml'
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
         stage('Trivy FS Scan') {
@@ -69,12 +65,11 @@ report.xml'
         stage('Docker Build & Push') {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 
-'docker') {
+                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
                         sh ''' 
                         echo "Building Docker image..."
-                        docker build --no-cache -t ASKFORTESAWS/bms:latest -f 
-bookmyshow-app/Dockerfile bookmyshow-app
+                        docker build --no-cache -t ASKFORTESAWS/bms:latest -f bookmyshow-app/Dockerfile bookmyshow-app
+
                         echo "Pushing Docker image to registry..."
                         docker push ASKFORTESAWS/bms:latest
                         '''
@@ -88,11 +83,13 @@ bookmyshow-app/Dockerfile bookmyshow-app
                 echo "Stopping and removing old container..."
                 docker stop bms || true
                 docker rm bms || true
+
                 echo "Running new container on port 3000..."
-                docker run -d --restart=always --name bms -p 3000:3000 
-ASKFORTESAWS/bms:latest
+                docker run -d --restart=always --name bms -p 3000:3000 ASKFORTESAWS/bms:latest
+
                 echo "Checking running containers..."
                 docker ps -a
+
                 echo "Fetching logs..."
                 sleep 5  # Give time for the app to start
                 docker logs bms
@@ -102,6 +99,13 @@ ASKFORTESAWS/bms:latest
     }
     post {
         always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                      "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                      "URL: ${env.BUILD_URL}<br/>",
+                to: 'askfortesaws6@gmail.com',
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
     }
-} 
+}                                                    																   
