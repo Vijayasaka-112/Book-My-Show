@@ -70,21 +70,42 @@ pipeline {
                 sh 'trivy fs . > trivyfs.txt'
             }
         }
-        stage('Docker Build & Push') {
-            steps {
-                script {
-                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                        sh ''' 
-                        echo "Building Docker image..."
-                        docker build --no-cache -t vijaya123qw/bms:latest -f bookmyshow-app/Dockerfile bookmyshow-app
+        // stage('Docker Build & Push') {
+        //     steps {
+        //         script {
+        //             withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+        //                 sh ''' 
+        //                 echo "Building Docker image..."
+        //                 docker build --no-cache -t vijaya123qw/bms:latest -f bookmyshow-app/Dockerfile bookmyshow-app
 
-                        echo "Pushing Docker image to registry..."
-                        docker push  vijaya123qw/bms:latest
-                        '''
-                    }
-                }
-            }
+        //                 echo "Pushing Docker image to registry..."
+        //                 docker push  vijaya123qw/bms:latest
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
+
+        stage('Docker Build & Push') {
+    steps {
+        withCredentials([usernamePassword(
+            credentialsId: 'docker-cred',
+            usernameVariable: 'DOCKER_USER',
+            passwordVariable: 'DOCKER_PASS'
+        )]) {
+
+            sh '''
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+
+            echo "Building Docker image..."
+            docker build --no-cache -t vijaya123qw/bms:latest -f bookmyshow-app/Dockerfile bookmyshow-app
+
+            echo "Pushing Docker image..."
+            docker push vijaya123qw/bms:latest
+            '''
         }
+    }
+}
         stage('Deploy to Container') {
             steps {
                 sh ''' 
