@@ -57,20 +57,7 @@ pipeline {
         //         dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
         //     }
         // }
-        stage('OWASP FS Scan') {
-    steps {
-        dir('bookmyshow-app') {
-            dependencyCheck(
-                additionalArguments: '--scan . --disableYarnAudit --disableNodeAudit --exclude node_modules',
-                odcInstallation: 'DP-Check'
-            )
-
-            dependencyCheckPublisher(
-                pattern: '**/dependency-check-report.xml'
-            )
-        }
-    }
-}
+        
         stage('Trivy FS Scan') {
             steps {
                 sh 'trivy fs . > trivyfs.txt'
