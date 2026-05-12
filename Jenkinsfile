@@ -29,13 +29,20 @@ pipeline {
                 }
             }
         }
+        // stage('Quality Gate') {
+        //     steps {
+        //         script {
+        //             waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
+        //         }
+        //     }
+        // }
         stage('Quality Gate') {
-            steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'Sonar-token'
-                }
-            }
+    steps {
+        timeout(time: 5, unit: 'MINUTES') {
+            waitForQualityGate abortPipeline: false
         }
+    }
+}
         stage('Install Dependencies') {
             steps {
                 sh '''
