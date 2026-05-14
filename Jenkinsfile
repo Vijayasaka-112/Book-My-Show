@@ -20,14 +20,7 @@ pipeline {
 
         stage('Checkout from Git') {
             steps {
-                checkout scmGit(
-                    branches: [[name: '*/main']],
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        credentialsId: 'gitcred',
-                        url: 'https://github.com/Vijayasaka-112/Book-My-Show.git'
-                    ]]
-                )
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'gitcred', url: 'https://github.com/Vijayasaka-112/Book-My-Show.git']])
 
                 sh 'ls -la'
             }
