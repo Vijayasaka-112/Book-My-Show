@@ -26,20 +26,19 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonar-server') {
-                    sh '''
-                    cd bookmyshow-app
-
-                    $SCANNER_HOME/bin/sonar-scanner \
-                    -Dsonar.projectName=BMS \
-                    -Dsonar.projectKey=BMS \
-                    -Dsonar.sources=.
-                    '''
-                }
-            }
+       stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('sonar-server') {
+            sh '''
+                cd bookmyshow-app
+                $SCANNER_HOME/bin/sonar-scanner \
+                -Dsonar.projectName=BMS \
+                -Dsonar.projectKey=BMS \
+                -Dsonar.sources=.
+            '''
         }
+    }
+}
 
         stage('Install Dependencies') {
             steps {
